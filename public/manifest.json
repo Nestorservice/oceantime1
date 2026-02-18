@@ -3,6 +3,8 @@
     "short_name": "TimeMaster",
     "description": "Gestion du temps avec rappels vocaux et alarmes pour développeurs & étudiants",
     "start_url": "/",
+    "scope": "/",
+    "id": "/",
     "display": "standalone",
     "background_color": "#EBF4FA",
     "theme_color": "#1E3A5F",

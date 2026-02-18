@@ -1,4 +1,4 @@
-const CACHE_NAME = 'timemaster-v1';
+const CACHE_NAME = 'timemaster-v2';
 const ASSETS_TO_CACHE = [
     '/',
     '/style.css',
@@ -6,6 +6,7 @@ const ASSETS_TO_CACHE = [
     '/js/app/tts-service.js',
     '/js/app/alarm-service.js',
     '/js/app/app.js',
+    '/js/app/ios-pwa.js',
     '/manifest.json'
 ];
 

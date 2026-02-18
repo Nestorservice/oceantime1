@@ -9,6 +9,10 @@
     <link rel="shortcut icon" type="image/png" href="images/favicon.png">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1E3A5F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TimeMaster">
+    <link rel="apple-touch-icon" href="/images/icon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="vendor/jquery-nice-select/css/nice-select.css" rel="stylesheet">
     <link href="style.css" rel="stylesheet">
@@ -204,6 +208,15 @@
                 padding: .25rem .7rem;
             }
         }
+
+        /* Fix modal on iOS */
+        .modal {
+            z-index: 99999 !important;
+        }
+
+        .modal-backdrop {
+            z-index: 99998 !important;
+        }
     </style>
 </head>
 
@@ -247,7 +260,7 @@
                             </li>
                             <li class="nav-item">
                                 <button class="btn" style="background:var(--tm-primary);color:#fff;border-radius:8px"
-                                    data-bs-toggle="modal" data-bs-target="#taskModal" onclick="openNewTask()">
+                                    onclick="openNewTaskModal()">
                                     <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Nouvelle Tâche</span>
                                 </button>
                             </li>
@@ -390,6 +403,7 @@
     <script src="js/app/tts-service.js"></script>
     <script src="js/app/alarm-service.js"></script>
     <script src="js/app/app.js"></script>
+    <script src="js/app/ios-pwa.js"></script>
 
     <script>
         let currentFilter = 'all';
@@ -430,7 +444,7 @@
                 container.innerHTML = `<div class="text-center p-5 text-muted">
                     <i class="fas fa-inbox fa-3x mb-3" style="color:var(--tm-accent)"></i>
                     <p>Aucune tâche trouvée</p>
-                    <button class="btn" style="background:var(--tm-primary);color:#fff;border-radius:8px" data-bs-toggle="modal" data-bs-target="#taskModal" onclick="openNewTask()">
+                    <button class="btn" style="background:var(--tm-primary);color:#fff;border-radius:8px" onclick="openNewTaskModal()">
                         <i class="fas fa-plus"></i> Créer une tâche
                     </button>
                 </div>`;
@@ -481,6 +495,10 @@
             document.getElementById('taskTime').value = '';
             document.getElementById('taskReminderBefore').value = '10';
             document.getElementById('taskVoice').checked = true;
+        }
+        function openNewTaskModal() {
+            openNewTask();
+            new bootstrap.Modal(document.getElementById('taskModal')).show();
         }
         async function editTask(id) {
             const task = await API.getTask(id);
