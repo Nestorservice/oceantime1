@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeMaster — Tâches</title>
+    <link rel="shortcut icon" type="image/png" href="images/favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1E3A5F">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="vendor/jquery-nice-select/css/nice-select.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        :root {
+            --tm-primary: #1E3A5F;
+            --tm-accent: #4DA8DA;
+            --tm-light: #EBF4FA;
+            --tm-danger: #E74C3C;
+            --tm-warning: #F39C12;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tm-widget-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(30, 58, 95, .07);
+        }
+
+        .task-row {
+            transition: all .2s;
+            border-left: 4px solid transparent;
+        }
+
+        .task-row:hover {
+            background: var(--tm-light);
+        }
+
+        .task-row.priority-3 {
+            border-left-color: var(--tm-danger);
+        }
+
+        .task-row.priority-2 {
+            border-left-color: var(--tm-warning);
+        }
+
+        .task-row.priority-1 {
+            border-left-color: var(--tm-accent);
+        }
+
+        .filter-chip {
+            border-radius: 2rem;
+            padding: .3rem .9rem;
+            font-size: .85rem;
+            cursor: pointer;
+            border: 1px solid #dee2e6;
+            background: #fff;
+            transition: all .2s;
+            margin: .2rem;
+        }
+
+        .filter-chip.active,
+        .filter-chip:hover {
+            background: var(--tm-primary);
+            color: #fff;
+            border-color: var(--tm-primary);
+        }
+
+        .tm-bell-wrap {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tm-bell-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background: var(--tm-danger);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        .tm-bell-shake {
+            animation: bellShake .6s ease;
+        }
+
+        @keyframes bellShake {
+
+            0%,
+            100% {
+                transform: rotate(0)
+            }
+
+            15% {
+                transform: rotate(14deg)
+            }
+
+            30% {
+                transform: rotate(-14deg)
+            }
+
+            45% {
+                transform: rotate(10deg)
+            }
+
+            60% {
+                transform: rotate(-8deg)
+            }
+
+            75% {
+                transform: rotate(4deg)
+            }
+        }
+
+        /* ── Task Card Items ────── */
+        .tm-task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: .75rem;
+            padding: .85rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all .2s ease;
+        }
+
+        .tm-task-item:last-child {
+            border-bottom: none;
+        }
+
+        .tm-task-item:hover {
+            background: var(--tm-light);
+        }
+
+        .tm-task-item.tm-task-done {
+            opacity: .6;
+            background: #fafbfc;
+        }
+
+        .tm-task-check {
+            padding-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .tm-task-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tm-task-title {
+            font-weight: 600;
+            font-size: .9rem;
+            color: var(--tm-primary, #1E3A5F);
+            line-height: 1.3;
+        }
+
+        .tm-task-desc {
+            font-size: .78rem;
+            color: #64748b;
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        .tm-task-actions {
+            display: flex;
+            gap: .35rem;
+            flex-shrink: 0;
+            align-self: center;
+        }
+
+        .tm-task-actions .btn {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: .5rem;
+            font-size: .75rem;
+        }
+
+        @media(max-width:768px) {
+            .tm-task-item {
+                padding: .7rem .75rem;
+                gap: .5rem;
+            }
+
+            .tm-task-title {
+                font-size: .82rem;
+            }
+
+            .filter-chip {
+                font-size: .75rem;
+                padding: .25rem .7rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="preloader">
+        <div class="lds-ripple">
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+    <div id="main-wrapper">
+        <div class="nav-header" style="background:#1E3A5F">
+            <a href="/" class="brand-logo">
+                <svg class="logo-abbr" width="50" height="50" viewBox="0 0 60 60">
+                    <rect width="60" height="60" rx="14" fill="#4DA8DA" /><text x="14" y="42" fill="#fff" font-size="28"
+                        font-weight="bold" font-family="Inter,Arial">T</text>
+                </svg>
+                <div class="brand-title">
+                    <h2 style="color:#fff">TimeMaster</h2><span class="brand-sub-title"
+                        style="color:rgba(255,255,255,.7)">Gestion du Temps</span>
+                </div>
+            </a>
+            <div class="nav-control">
+                <div class="hamburger"><span class="line"></span><span class="line"></span><span class="line"></span>
+                </div>
+            </div>
+        </div>
+        <div class="header border-bottom">
+            <div class="header-content">
+                <nav class="navbar navbar-expand">
+                    <div class="collapse navbar-collapse justify-content-between">
+                        <div class="header-left">
+                            <div class="dashboard_bar">Gestion des Tâches</div>
+                        </div>
+                        <ul class="navbar-nav header-right">
+                            <li class="nav-item d-flex align-items-center me-3">
+                                <div class="tm-bell-wrap" onclick="AlarmService.clearBell()"><i
+                                        class="fas fa-bell fa-lg" id="tm-bell-icon"
+                                        style="color:var(--tm-primary)"></i><span class="tm-bell-badge"
+                                        id="tm-bell-badge">0</span></div>
+                            </li>
+                            <li class="nav-item">
+                                <button class="btn" style="background:var(--tm-primary);color:#fff;border-radius:8px"
+                                    data-bs-toggle="modal" data-bs-target="#taskModal" onclick="openNewTask()">
+                                    <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Nouvelle Tâche</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <div class="dlabnav" style="background:#1E3A5F">
+            <div class="dlabnav-scroll">
+                <ul class="metismenu" id="menu">
+                    <li><a href="/" style="color:rgba(255,255,255,.7)"><i class="fas fa-th-large"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Dashboard</span></a></li>
+                    <li class="mm-active"><a href="/tasks.html" style="color:rgba(255,255,255,.9)"><i
+                                class="fas fa-tasks" style="color:#4DA8DA"></i><span class="nav-text">Tâches</span></a>
+                    </li>
+                    <li><a href="/calendar.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-calendar-alt"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Calendrier</span></a></li>
+                    <li><a href="/pomodoro.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-stopwatch"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Pomodoro</span></a></li>
+                    <li><a href="/statistics.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-chart-bar"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Statistiques</span></a>
+                    </li>
+                    <li><a href="/settings.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-cog"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Réglages</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="container-fluid">
+                <div class="card tm-widget-card mb-3">
+                    <div class="card-body d-flex flex-wrap align-items-center gap-2">
+                        <strong class="me-2"><i class="fas fa-filter"></i> Filtres :</strong>
+                        <span class="filter-chip active" onclick="filterTasks('all', this)">Toutes</span>
+                        <span class="filter-chip" onclick="filterTasks('pending', this)">En attente</span>
+                        <span class="filter-chip" onclick="filterTasks('in_progress', this)">En cours</span>
+                        <span class="filter-chip" onclick="filterTasks('completed', this)">Terminées</span>
+                        <span class="mx-2 d-none d-md-inline">|</span>
+                        <select id="categoryFilter" class="form-select form-select-sm" style="width:auto"
+                            onchange="loadAllTasks()">
+                            <option value="">Toutes catégories</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card tm-widget-card">
+                    <div class="card-body p-0" id="task-list">
+                        <div class="text-center p-5">
+                            <div class="spinner-border" style="color:var(--tm-primary)"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="copyright">
+                <p>TimeMaster PWA — Gère ton temps, maîtrise ta vie.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal fade" id="taskModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:1rem">
+                <div class="modal-header"
+                    style="background:linear-gradient(135deg,#1E3A5F,#4DA8DA);color:#fff;border-radius:1rem 1rem 0 0">
+                    <h5 class="modal-title" id="taskModalTitle">Nouvelle Tâche</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="taskId">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Titre *</label>
+                        <input type="text" id="taskTitle" class="form-control" placeholder="Ex: Cours d'algorithmique"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description</label>
+                        <textarea id="taskDescription" class="form-control" rows="2" placeholder="Notes..."></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Catégorie</label>
+                            <select id="taskCategory" class="form-select"></select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Priorité</label>
+                            <select id="taskPriority" class="form-select">
+                                <option value="1"><i class="fas fa-circle" style="color:#4DA8DA"></i> Basse</option>
+                                <option value="2" selected><i class="fas fa-circle" style="color:#F39C12"></i> Normale
+                                </option>
+                                <option value="3"><i class="fas fa-circle" style="color:#E74C3C"></i> Urgente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Date</label>
+                            <input type="date" id="taskDate" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Heure</label>
+                            <input type="time" id="taskTime" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Rappel avant (min)</label>
+                            <input type="number" id="taskReminderBefore" class="form-control" value="10" min="1"
+                                max="120">
+                        </div>
+                        <div class="col-6 d-flex align-items-end">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" id="taskVoice" class="form-check-input" checked>
+                                <label class="form-check-label fw-bold" for="taskVoice">
+                                    <i class="fas fa-volume-up"></i> Rappel vocal
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn" style="background:var(--tm-primary);color:#fff"
+                        onclick="saveTask()">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/global/global.min.js"></script>
+    <script src="vendor/jquery-nice-select/js/jquery.nice-select.min.js"></script>
+    <script src="js/template-fix.js"></script>
+    <script src="js/custom.min.js"></script>
+    <script src="js/dlabnav-init.js"></script>
+    <script src="js/app/api-client.js"></script>
+    <script src="js/app/tts-service.js"></script>
+    <script src="js/app/alarm-service.js"></script>
+    <script src="js/app/app.js"></script>
+
+    <script>
+        let currentFilter = 'all';
+        let categories = [];
+
+        async function initTasksPage() {
+            try {
+                categories = await API.getCategories();
+            } catch (e) {
+                console.warn('[Tasks] Failed to load categories:', e.message);
+                categories = [];
+            }
+            const catOpts = '<option value="">Sans catégorie</option>' + categories.map(c =>
+                `<option value="${c.id}">${c.name}</option>`).join('');
+            const taskCatEl = document.getElementById('taskCategory');
+            if (taskCatEl) taskCatEl.innerHTML = catOpts;
+            const catFilterEl = document.getElementById('categoryFilter');
+            if (catFilterEl) catFilterEl.innerHTML =
+                '<option value="">Toutes catégories</option>' + categories.map(c =>
+                    `<option value="${c.id}">${c.name}</option>`).join('');
+            const taskDateEl = document.getElementById('taskDate');
+            if (taskDateEl) taskDateEl.value = new Date().toISOString().split('T')[0];
+            await loadAllTasks();
+        }
+
+        async function loadAllTasks() {
+            const filters = {};
+            if (currentFilter !== 'all') filters.status = currentFilter;
+            const catId = document.getElementById('categoryFilter').value;
+            if (catId) filters.category = catId;
+            const tasks = await API.getTasks(filters);
+            renderTasks(tasks);
+        }
+
+        function renderTasks(tasks) {
+            const container = document.getElementById('task-list');
+            if (tasks.length === 0) {
+                container.innerHTML = `<div class="text-center p-5 text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3" style="color:var(--tm-accent)"></i>
+                    <p>Aucune tâche trouvée</p>
+                    <button class="btn" style="background:var(--tm-primary);color:#fff;border-radius:8px" data-bs-toggle="modal" data-bs-target="#taskModal" onclick="openNewTask()">
+                        <i class="fas fa-plus"></i> Créer une tâche
+                    </button>
+                </div>`;
+                return;
+            }
+            container.innerHTML = tasks.map(t => {
+                const done = t.status === 'completed';
+                const prioColor = t.priority === 3 ? '#E74C3C' : t.priority === 2 ? '#F39C12' : '#4DA8DA';
+                const prioBadge = t.priority === 3 ? '<span class="badge bg-danger">Urgent</span>' : t.priority === 2 ? '<span class="badge bg-warning text-dark">Normal</span>' : '<span class="badge bg-info">Basse</span>';
+                return `
+                <div class="tm-task-item ${done ? 'tm-task-done' : ''}" style="border-left:4px solid ${prioColor}">
+                    <div class="tm-task-check">
+                        <input type="checkbox" class="form-check-input" ${done ? 'checked' : ''}
+                            onchange="toggleTaskStatus(${t.id}, this.checked)" style="cursor:pointer;width:20px;height:20px">
+                    </div>
+                    <div class="tm-task-info">
+                        <div class="tm-task-title ${done ? 'text-decoration-line-through text-muted' : ''}">${t.title}</div>
+                        ${t.description ? '<div class="tm-task-desc">' + t.description + '</div>' : ''}
+                        <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                            ${t.category_name ? '<span class="badge" style="background:' + (t.category_color || '#64748b') + ';font-size:.7rem">' + t.category_name + '</span>' : ''}
+                            ${prioBadge}
+                            ${t.due_date ? '<small class="text-muted"><i class="fas fa-calendar me-1"></i>' + t.due_date + (t.due_time ? ' à ' + t.due_time : '') + '</small>' : ''}
+                            ${t.voice_reminder ? '<small style="color:var(--tm-accent)"><i class="fas fa-volume-up"></i></small>' : ''}
+                        </div>
+                    </div>
+                    <div class="tm-task-actions">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editTask(${t.id})" title="Modifier"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(${t.id})" title="Supprimer"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function filterTasks(status, el) {
+            currentFilter = status;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            loadAllTasks();
+        }
+        function openNewTask() {
+            document.getElementById('taskId').value = '';
+            document.getElementById('taskModalTitle').textContent = 'Nouvelle Tâche';
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDescription').value = '';
+            document.getElementById('taskCategory').value = '';
+            document.getElementById('taskPriority').value = '2';
+            document.getElementById('taskDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('taskTime').value = '';
+            document.getElementById('taskReminderBefore').value = '10';
+            document.getElementById('taskVoice').checked = true;
+        }
+        async function editTask(id) {
+            const task = await API.getTask(id);
+            document.getElementById('taskId').value = task.id;
+            document.getElementById('taskModalTitle').textContent = 'Modifier la Tâche';
+            document.getElementById('taskTitle').value = task.title;
+            document.getElementById('taskDescription').value = task.description || '';
+            document.getElementById('taskCategory').value = task.category_id || '';
+            document.getElementById('taskPriority').value = task.priority;
+            document.getElementById('taskDate').value = task.due_date || '';
+            document.getElementById('taskTime').value = task.due_time || '';
+            document.getElementById('taskReminderBefore').value = task.reminder_minutes_before || 10;
+            document.getElementById('taskVoice').checked = !!task.voice_reminder;
+            new bootstrap.Modal(document.getElementById('taskModal')).show();
+        }
+        async function saveTask() {
+            const id = document.getElementById('taskId').value;
+            const data = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                category_id: document.getElementById('taskCategory').value || null,
+                priority: parseInt(document.getElementById('taskPriority').value),
+                due_date: document.getElementById('taskDate').value || null,
+                due_time: document.getElementById('taskTime').value || null,
+                reminder_minutes_before: parseInt(document.getElementById('taskReminderBefore').value) || 10,
+                voice_reminder: document.getElementById('taskVoice').checked,
+            };
+            if (!data.title) { alert('Le titre est requis'); return; }
+            if (id) { await API.updateTask(id, data); }
+            else { await API.createTask(data); }
+            bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
+            loadAllTasks();
+        }
+        async function deleteTask(id) {
+            if (!confirm('Supprimer cette tâche ?')) return;
+            await API.deleteTask(id);
+            loadAllTasks();
+        }
+        async function toggleTaskStatus(id, completed) {
+            await API.updateTask(id, { status: completed ? 'completed' : 'pending' });
+            loadAllTasks();
+        }
+        // initTasksPage is called by app.js after auth check
+    </script>
+</body>
+
+</html>

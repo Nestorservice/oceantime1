@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="TimeMaster - Gestion du temps avec rappels vocaux et alarmes">
+    <title>TimeMaster — Dashboard</title>
+    <link rel="shortcut icon" type="image/png" href="images/favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1E3A5F">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="vendor/jquery-nice-select/css/nice-select.css" rel="stylesheet">
+    <link href="vendor/owl-carousel/owl.carousel.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        /* ── TimeMaster v2 — Blue & White ──────── */
+        :root {
+            --tm-primary: #1E3A5F;
+            --tm-accent: #4DA8DA;
+            --tm-light: #EBF4FA;
+            --tm-white: #ffffff;
+            --tm-text: #1a1a2e;
+            --tm-muted: #64748b;
+            --tm-danger: #E74C3C;
+            --tm-warning: #F39C12;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tm-widget-card {
+            border: none;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 2px 16px rgba(30, 58, 95, 0.07);
+            transition: transform .2s, box-shadow .2s;
+            background: var(--tm-white);
+        }
+
+        .tm-widget-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(30, 58, 95, 0.12);
+        }
+
+        /* Hero greeting */
+        .tm-hero {
+            background: linear-gradient(135deg, #1E3A5F 0%, #4DA8DA 100%);
+            color: #fff;
+            padding: 2rem;
+            border-radius: 1.2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tm-hero::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 50%;
+        }
+
+        .tm-hero::before {
+            content: '';
+            position: absolute;
+            bottom: -60%;
+            left: -10%;
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 50%;
+        }
+
+        .greeting-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .greeting-sub {
+            opacity: 0.85;
+            font-size: 0.9rem;
+        }
+
+        /* Clock */
+        .tm-clock {
+            font-size: 2.8rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+        }
+
+        /* Stat cards */
+        .stat-card {
+            border-radius: 1rem;
+            padding: 1.2rem;
+            text-align: center;
+            background: var(--tm-white);
+            border: 1px solid #e8edf3;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(30, 58, 95, 0.1);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: .5rem;
+            font-size: 1.1rem;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--tm-muted);
+            font-weight: 500;
+        }
+
+        /* Task items */
+        .task-item {
+            transition: background .2s;
+            cursor: pointer;
+        }
+
+        .task-item:hover {
+            background: var(--tm-light);
+        }
+
+        /* Pomodoro mini */
+        .pomodoro-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 4px solid var(--tm-primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--tm-primary);
+        }
+
+        /* Quick actions */
+        .quick-action-btn {
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            transition: all .2s;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: var(--tm-white);
+        }
+
+        .quick-action-btn:hover {
+            border-color: var(--tm-accent);
+            transform: scale(1.04);
+            box-shadow: 0 4px 16px rgba(77, 168, 218, 0.15);
+        }
+
+        /* Bell notification */
+        .tm-bell-wrap {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tm-bell-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background: var(--tm-danger);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        .tm-bell-shake {
+            animation: bellShake 0.6s ease;
+        }
+
+        @keyframes bellShake {
+
+            0%,
+            100% {
+                transform: rotate(0)
+            }
+
+            15% {
+                transform: rotate(14deg)
+            }
+
+            30% {
+                transform: rotate(-14deg)
+            }
+
+            45% {
+                transform: rotate(10deg)
+            }
+
+            60% {
+                transform: rotate(-8deg)
+            }
+
+            75% {
+                transform: rotate(4deg)
+            }
+        }
+
+        /* Progress ring */
+        .progress-ring-wrap {
+            position: relative;
+            display: inline-block;
+        }
+
+        .progress-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--tm-primary);
+        }
+
+        /* ── Mobile Responsive ──────── */
+        @media (max-width: 768px) {
+            .tm-hero {
+                padding: 1.2rem;
+                border-radius: .8rem;
+            }
+
+            .greeting-text {
+                font-size: 1.2rem;
+            }
+
+            .tm-clock {
+                font-size: 2rem;
+            }
+
+            .stat-number {
+                font-size: 1.4rem;
+            }
+
+            .stat-card {
+                padding: .8rem;
+            }
+
+            .stat-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
+            }
+
+            .pomodoro-circle {
+                width: 70px;
+                height: 70px;
+                font-size: 1rem;
+            }
+
+            .quick-action-btn {
+                padding: .7rem;
+            }
+
+            .quick-action-btn p {
+                font-size: .8rem;
+            }
+
+            .quick-action-btn i {
+                font-size: 1.3rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tm-hero .row {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .tm-hero .text-end {
+                text-align: center !important;
+                margin-top: .8rem;
+            }
+
+            .stat-label {
+                font-size: 0.65rem;
+            }
+        }
+
+        /* ── Kill ALL template floating widgets ────── */
+        .chatbox,
+        .bell-box,
+        .wallet-bar,
+        .support-toggle,
+        .dz-theme-mode,
+        .dz-demo-panel,
+        .btn-buy,
+        .purchase-popup,
+        [class*="chatbox"],
+        [class*="support"],
+        [class*="wallet-bar"],
+        [class*="bell-link"],
+        div[style*="position: fixed"][style*="z-index"] a.btn-primary.btn-rounded,
+        body>.btn.btn-primary.btn-rounded,
+        body>a.btn.btn-primary,
+        #main-wrapper~.btn,
+        #main-wrapper~a.btn,
+        #main-wrapper~div:not(script):not(#preloader) {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            position: absolute !important;
+            left: -9999px !important;
+        }
+
+        /* ── Quick Action Pill Buttons ────── */
+        .tm-quick-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .55rem 1rem;
+            background: #fff;
+            border: 1.5px solid #e9ecef;
+            border-radius: 2rem;
+            font-size: .82rem;
+            font-weight: 600;
+            color: var(--tm-text);
+            text-decoration: none;
+            transition: all .2s ease;
+            white-space: nowrap;
+        }
+
+        .tm-quick-btn:hover {
+            border-color: var(--tm-primary);
+            box-shadow: 0 2px 8px rgba(30, 58, 95, .12);
+            transform: translateY(-1px);
+            color: var(--tm-primary);
+        }
+
+        .tm-quick-btn i {
+            font-size: 1rem;
+        }
+
+        /* ── Ensure all cards have solid bg ────── */
+        .tm-widget-card {
+            background: #fff !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 576px) {
+            .tm-quick-btn {
+                padding: .45rem .75rem;
+                font-size: .75rem;
+            }
+
+            .tm-quick-btn i {
+                font-size: .85rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="lds-ripple">
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+
+    <div id="main-wrapper">
+
+        <!-- Nav Header -->
+        <div class="nav-header" style="background:#1E3A5F">
+            <a href="/" class="brand-logo">
+                <img class="logo-abbr" src="images/logo.svg" alt="TM" style="width:50px;height:50px;border-radius:12px">
+                <div class="brand-title">
+                    <h2 style="color:#fff">TimeMaster</h2>
+                    <span class="brand-sub-title" style="color:rgba(255,255,255,.7)">Gestion du Temps</span>
+                </div>
+            </a>
+            <div class="nav-control">
+                <div class="hamburger"><span class="line"></span><span class="line"></span><span class="line"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="header border-bottom">
+            <div class="header-content">
+                <nav class="navbar navbar-expand">
+                    <div class="collapse navbar-collapse justify-content-between">
+                        <div class="header-left">
+                            <div class="dashboard_bar">Dashboard</div>
+                        </div>
+                        <ul class="navbar-nav header-right">
+                            <li class="nav-item d-flex align-items-center me-3">
+                                <div class="tm-bell-wrap" onclick="AlarmService.clearBell()" title="Notifications">
+                                    <i class="fas fa-bell fa-lg" id="tm-bell-icon" style="color:var(--tm-primary)"></i>
+                                    <span class="tm-bell-badge" id="tm-bell-badge">0</span>
+                                </div>
+                            </li>
+                            <li class="nav-item d-flex align-items-center">
+                                <button class="btn btn-sm"
+                                    style="background:var(--tm-primary);color:#fff;border-radius:8px"
+                                    onclick="morningBriefing()" title="Briefing du jour">
+                                    <i class="fas fa-broadcast-tower"></i> <span
+                                        class="d-none d-md-inline">Briefing</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="dlabnav" style="background:#1E3A5F">
+            <div class="dlabnav-scroll">
+                <ul class="metismenu" id="menu">
+                    <li class="mm-active">
+                        <a href="/" aria-expanded="false" style="color:rgba(255,255,255,.9)">
+                            <i class="fas fa-th-large" style="color:#4DA8DA"></i>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li><a href="/tasks.html" style="color:rgba(255,255,255,.7)">
+                            <i class="fas fa-tasks" style="color:rgba(255,255,255,.5)"></i><span
+                                class="nav-text">Tâches</span></a></li>
+                    <li><a href="/calendar.html" style="color:rgba(255,255,255,.7)">
+                            <i class="fas fa-calendar-alt" style="color:rgba(255,255,255,.5)"></i><span
+                                class="nav-text">Calendrier</span></a></li>
+                    <li><a href="/pomodoro.html" style="color:rgba(255,255,255,.7)">
+                            <i class="fas fa-stopwatch" style="color:rgba(255,255,255,.5)"></i><span
+                                class="nav-text">Pomodoro</span></a></li>
+                    <li><a href="/statistics.html" style="color:rgba(255,255,255,.7)">
+                            <i class="fas fa-chart-bar" style="color:rgba(255,255,255,.5)"></i><span
+                                class="nav-text">Statistiques</span></a></li>
+                    <li><a href="/settings.html" style="color:rgba(255,255,255,.7)">
+                            <i class="fas fa-cog" style="color:rgba(255,255,255,.5)"></i><span
+                                class="nav-text">Réglages</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-body">
+            <div class="container-fluid">
+
+                <!-- Hero Greeting -->
+                <div class="tm-hero">
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <p class="greeting-text mb-1" id="greeting-text"><i
+                                    class="fas fa-hand-peace me-2"></i>Bonjour !</p>
+                            <p class="greeting-sub mb-0">Voici ton programme d'aujourd'hui. Reste focus et avance pas à
+                                pas.</p>
+                        </div>
+                        <div class="col-md-5 text-end">
+                            <span class="tm-clock" id="current-time"></span>
+                            <p class="mb-0 greeting-sub" id="current-date"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="row mb-3">
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:rgba(30,58,95,.08);color:#1E3A5F"><i
+                                    class="fas fa-clipboard-list"></i></div>
+                            <div class="stat-number" id="stat-total" style="color:#1E3A5F">—</div>
+                            <div class="stat-label">Tâches du jour</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:rgba(77,168,218,.1);color:#4DA8DA"><i
+                                    class="fas fa-check-double"></i></div>
+                            <div class="stat-number" id="stat-done" style="color:#4DA8DA">—</div>
+                            <div class="stat-label">Terminées</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:rgba(142,68,173,.08);color:#8E44AD"><i
+                                    class="fas fa-stopwatch"></i></div>
+                            <div class="stat-number" id="stat-focus" style="color:#8E44AD">—</div>
+                            <div class="stat-label">Min Focus</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background:rgba(243,156,18,.08);color:#F39C12"><i
+                                    class="fas fa-fire-alt"></i></div>
+                            <div class="stat-number" id="stat-streak" style="color:#F39C12">—</div>
+                            <div class="stat-label">Jours de série</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════ Section: Accès Rapides ═══════ -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-uppercase fw-bold mb-3"
+                            style="color:var(--tm-muted);font-size:.75rem;letter-spacing:1px">
+                            <i class="fas fa-bolt me-1"></i> Accès Rapides
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="/tasks.html" class="tm-quick-btn">
+                                <i class="fas fa-plus-circle" style="color:#1E3A5F"></i>
+                                <span>Nouvelle Tâche</span>
+                            </a>
+                            <a href="/calendar.html" class="tm-quick-btn">
+                                <i class="fas fa-calendar-plus" style="color:#4DA8DA"></i>
+                                <span>Time Block</span>
+                            </a>
+                            <a href="/pomodoro.html" class="tm-quick-btn">
+                                <i class="fas fa-play-circle" style="color:#8E44AD"></i>
+                                <span>Pomodoro</span>
+                            </a>
+                            <a href="/statistics.html" class="tm-quick-btn">
+                                <i class="fas fa-chart-pie" style="color:#F39C12"></i>
+                                <span>Stats</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════ Section: Aujourd'hui ═══════ -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card tm-widget-card" style="position:relative;z-index:2;background:#fff">
+                            <div class="card-header border-0 pb-0">
+                                <h4 class="card-title mb-0"><i class="fas fa-trophy me-2"
+                                        style="color:var(--tm-warning)"></i>Aujourd'hui</h4>
+                            </div>
+                            <div class="card-body" id="quick-stats">
+                                <div class="text-center p-3">
+                                    <div class="spinner-border" style="color:var(--tm-primary)" role="status"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════ Section: Tâches & Alarme ═══════ -->
+                <div class="row mb-3">
+                    <!-- Today's Tasks -->
+                    <div class="col-lg-7 mb-3">
+                        <div class="card tm-widget-card h-100" style="position:relative;z-index:1;background:#fff">
+                            <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                                <h4 class="card-title mb-0"><i class="fas fa-clipboard-list me-2"
+                                        style="color:var(--tm-primary)"></i>Tâches du Jour</h4>
+                                <a href="/tasks.html" class="btn btn-sm"
+                                    style="background:var(--tm-primary);color:#fff;border-radius:8px"><i
+                                        class="fas fa-plus"></i> Ajouter</a>
+                            </div>
+                            <div class="card-body p-0" id="today-tasks">
+                                <div class="text-center p-5">
+                                    <div class="spinner-border" style="color:var(--tm-primary)" role="status"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Next Alarm -->
+                    <div class="col-lg-5 mb-3">
+                        <div class="card tm-widget-card h-100" style="position:relative;z-index:1;background:#fff">
+                            <div class="card-header border-0 pb-0">
+                                <h4 class="card-title"><i class="fas fa-bell me-2"
+                                        style="color:var(--tm-warning)"></i>Prochaine Alarme</h4>
+                            </div>
+                            <div class="card-body" id="next-alarm">
+                                <div class="text-center p-3">
+                                    <div class="spinner-border" style="color:var(--tm-primary)" role="status"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="copyright">
+                <p>TimeMaster PWA — Gère ton temps, maîtrise ta vie.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="vendor/global/global.min.js"></script>
+    <script src="vendor/jquery-nice-select/js/jquery.nice-select.min.js"></script>
+    <script src="js/template-fix.js"></script>
+    <script src="js/custom.min.js"></script>
+    <script src="js/dlabnav-init.js"></script>
+
+    <!-- TimeMaster Core -->
+    <script src="js/app/api-client.js"></script>
+    <script src="js/app/tts-service.js"></script>
+    <script src="js/app/alarm-service.js"></script>
+    <script src="js/app/app.js"></script>
+
+    <script>
+        // ── Live clock ──
+        function updateClock() {
+            const now = new Date();
+            const timeEl = document.getElementById('current-time');
+            const dateEl = document.getElementById('current-date');
+            if (timeEl) timeEl.textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            if (dateEl) dateEl.textContent = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+            const greeting = document.getElementById('greeting-text');
+            if (greeting) {
+                const h = now.getHours();
+                const icon = h < 12 ? 'fa-sun' : h < 18 ? 'fa-cloud-sun' : 'fa-moon';
+                const text = h < 12 ? 'Bonjour !' : h < 18 ? 'Bon après-midi !' : 'Bonsoir !';
+                greeting.innerHTML = `<i class="fas ${icon} me-2"></i>${text}`;
+            }
+        }
+        updateClock();
+        setInterval(updateClock, 30000);
+
+        // ── Load stats in stat cards ──
+        async function loadStatCards() {
+            try {
+                const [daily, pStats] = await Promise.all([API.getStatsDaily(), API.getPomodoroStats()]);
+                document.getElementById('stat-total').textContent = daily.total || 0;
+                document.getElementById('stat-done').textContent = daily.completed || 0;
+                document.getElementById('stat-focus').textContent = pStats.today?.total_minutes || 0;
+                document.getElementById('stat-streak').textContent = pStats.streak?.length || 0;
+            } catch (e) { }
+        }
+        // Load after a short delay to not block initial render
+        setTimeout(loadStatCards, 300);
+
+        // ── Morning Briefing ──
+        async function morningBriefing() {
+            const tasks = await API.getTasksToday();
+            TTS.morningBriefing(tasks);
+        }
+    </script>
+
+</body>
+
+</html>

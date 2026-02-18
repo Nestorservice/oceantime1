@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeMaster — Calendrier</title>
+    <link rel="shortcut icon" type="image/png" href="images/favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1E3A5F">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="vendor/jquery-nice-select/css/nice-select.css" rel="stylesheet">
+    <link href="vendor/fullcalendar/css/main.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        :root {
+            --tm-primary: #1E3A5F;
+            --tm-accent: #4DA8DA;
+            --tm-light: #EBF4FA;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tm-widget-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(30, 58, 95, .07);
+        }
+
+        .fc-event {
+            border-radius: 6px !important;
+            padding: 2px 6px !important;
+            font-size: .85rem !important;
+        }
+
+        .fc-toolbar h2 {
+            font-size: 1.2rem !important;
+        }
+
+        #calendar {
+            min-height: 600px;
+        }
+
+        .tm-bell-wrap {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tm-bell-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background: #E74C3C;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        .tm-bell-shake {
+            animation: bellShake .6s ease;
+        }
+
+        @keyframes bellShake {
+
+            0%,
+            100% {
+                transform: rotate(0)
+            }
+
+            15% {
+                transform: rotate(14deg)
+            }
+
+            30% {
+                transform: rotate(-14deg)
+            }
+
+            45% {
+                transform: rotate(10deg)
+            }
+
+            60% {
+                transform: rotate(-8deg)
+            }
+
+            75% {
+                transform: rotate(4deg)
+            }
+        }
+
+        @media(max-width:768px) {
+            #calendar {
+                min-height: 400px;
+            }
+
+            .fc-toolbar {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .fc-toolbar .fc-left,
+            .fc-toolbar .fc-right,
+            .fc-toolbar .fc-center {
+                display: flex;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="preloader">
+        <div class="lds-ripple">
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+    <div id="main-wrapper">
+        <div class="nav-header" style="background:#1E3A5F">
+            <a href="/" class="brand-logo">
+                <svg class="logo-abbr" width="50" height="50" viewBox="0 0 60 60">
+                    <rect width="60" height="60" rx="14" fill="#4DA8DA" /><text x="14" y="42" fill="#fff" font-size="28"
+                        font-weight="bold" font-family="Inter,Arial">T</text>
+                </svg>
+                <div class="brand-title">
+                    <h2 style="color:#fff">TimeMaster</h2><span class="brand-sub-title"
+                        style="color:rgba(255,255,255,.7)">Gestion du Temps</span>
+                </div>
+            </a>
+            <div class="nav-control">
+                <div class="hamburger"><span class="line"></span><span class="line"></span><span class="line"></span>
+                </div>
+            </div>
+        </div>
+        <div class="header border-bottom">
+            <div class="header-content">
+                <nav class="navbar navbar-expand">
+                    <div class="collapse navbar-collapse justify-content-between">
+                        <div class="header-left">
+                            <div class="dashboard_bar">Calendrier — Time Blocking</div>
+                        </div>
+                        <ul class="navbar-nav header-right">
+                            <li class="nav-item d-flex align-items-center me-3">
+                                <div class="tm-bell-wrap" onclick="AlarmService.clearBell()"><i
+                                        class="fas fa-bell fa-lg" id="tm-bell-icon"
+                                        style="color:var(--tm-primary)"></i><span class="tm-bell-badge"
+                                        id="tm-bell-badge">0</span></div>
+                            </li>
+                            <li class="nav-item"><button class="btn"
+                                    style="background:var(--tm-primary);color:#fff;border-radius:8px"
+                                    data-bs-toggle="modal" data-bs-target="#blockModal" onclick="openNewBlock()"><i
+                                        class="fas fa-plus"></i> <span class="d-none d-sm-inline">Nouveau
+                                        Bloc</span></button></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <div class="dlabnav" style="background:#1E3A5F">
+            <div class="dlabnav-scroll">
+                <ul class="metismenu" id="menu">
+                    <li><a href="/" style="color:rgba(255,255,255,.7)"><i class="fas fa-th-large"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Dashboard</span></a></li>
+                    <li><a href="/tasks.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-tasks"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Tâches</span></a></li>
+                    <li class="mm-active"><a href="/calendar.html" style="color:rgba(255,255,255,.9)"><i
+                                class="fas fa-calendar-alt" style="color:#4DA8DA"></i><span
+                                class="nav-text">Calendrier</span></a></li>
+                    <li><a href="/pomodoro.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-stopwatch"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Pomodoro</span></a></li>
+                    <li><a href="/statistics.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-chart-bar"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Statistiques</span></a>
+                    </li>
+                    <li><a href="/settings.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-cog"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Réglages</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="container-fluid">
+                <div class="card tm-widget-card">
+                    <div class="card-body">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="copyright">
+                <p>TimeMaster PWA — Gère ton temps, maîtrise ta vie.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Block Modal -->
+    <div class="modal fade" id="blockModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:1rem">
+                <div class="modal-header"
+                    style="background:linear-gradient(135deg,#1E3A5F,#4DA8DA);color:#fff;border-radius:1rem 1rem 0 0">
+                    <h5 class="modal-title" id="blockModalTitle">Nouveau Bloc de Temps</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="blockId">
+                    <div class="mb-3"><label class="form-label fw-bold">Titre *</label><input type="text"
+                            id="blockTitle" class="form-control" placeholder="Ex: Deep Work – Projet X"></div>
+                    <div class="row mb-3">
+                        <div class="col-6"><label class="form-label fw-bold">Début</label><input type="datetime-local"
+                                id="blockStart" class="form-control"></div>
+                        <div class="col-6"><label class="form-label fw-bold">Fin</label><input type="datetime-local"
+                                id="blockEnd" class="form-control"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><label class="form-label fw-bold">Catégorie</label><select id="blockCategory"
+                                class="form-select"></select></div>
+                        <div class="col-6"><label class="form-label fw-bold">Couleur</label><input type="color"
+                                id="blockColor" class="form-control form-control-color" value="#1E3A5F"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger me-auto" id="deleteBlockBtn" style="display:none"
+                        onclick="deleteBlock()"><i class="fas fa-trash"></i></button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn" style="background:var(--tm-primary);color:#fff"
+                        onclick="saveBlock()"><i class="fas fa-save"></i> Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/global/global.min.js"></script>
+    <script src="vendor/jquery-nice-select/js/jquery.nice-select.min.js"></script>
+    <script src="vendor/moment/moment.min.js"></script>
+    <script src="vendor/fullcalendar/js/main.min.js"></script>
+    <script src="js/template-fix.js"></script>
+    <script src="js/custom.min.js"></script>
+    <script src="js/dlabnav-init.js"></script>
+    <script src="js/app/api-client.js"></script>
+    <script src="js/app/tts-service.js"></script>
+    <script src="js/app/alarm-service.js"></script>
+    <script src="js/app/app.js"></script>
+
+    <script>
+        let calendar;
+        let categories = [];
+
+        async function initCalendarPage() {
+            try {
+                categories = await API.getCategories();
+            } catch (e) {
+                console.warn('[Calendar] Failed to load categories:', e.message);
+                categories = [];
+            }
+
+            const catSelect = document.getElementById('blockCategory');
+            if (catSelect) {
+                catSelect.innerHTML = '<option value="">Sans catégorie</option>' + categories.map(c =>
+                    `<option value="${c.id}" style="color:${c.color}">${c.name}</option>`).join('');
+            }
+
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) { console.warn('[Calendar] #calendar element not found'); return; }
+            if (typeof FullCalendar === 'undefined') { console.error('[Calendar] FullCalendar not loaded'); return; }
+
+            const isMobile = window.innerWidth < 768;
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: isMobile ? 'timeGridDay' : 'timeGridWeek',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+                locale: 'fr',
+                editable: true,
+                selectable: true,
+                selectMirror: true,
+                slotDuration: '00:30:00',
+                slotMinTime: '06:00:00',
+                slotMaxTime: '23:00:00',
+                allDaySlot: false,
+                height: 'auto',
+                select: function (info) {
+                    openNewBlock();
+                    document.getElementById('blockStart').value = formatDT(info.start);
+                    document.getElementById('blockEnd').value = formatDT(info.end);
+                    new bootstrap.Modal(document.getElementById('blockModal')).show();
+                    calendar.unselect();
+                },
+                eventClick: function (info) { editBlock(info.event); },
+                eventResize: async function (info) {
+                    await API.updateBlock(info.event.id, {
+                        start_datetime: formatDT(info.event.start),
+                        end_datetime: formatDT(info.event.end)
+                    });
+                },
+                eventDrop: async function (info) {
+                    await API.updateBlock(info.event.id, {
+                        start_datetime: formatDT(info.event.start),
+                        end_datetime: formatDT(info.event.end)
+                    });
+                },
+                events: async function (fetchInfo, successCallback, failureCallback) {
+                    try {
+                        const blocks = await API.getBlocks(fetchInfo.startStr, fetchInfo.endStr);
+                        successCallback(blocks.map(b => ({
+                            id: String(b.id),
+                            title: b.title,
+                            start: b.start_datetime,
+                            end: b.end_datetime,
+                            color: b.color || '#1E3A5F',
+                            extendedProps: { category_id: b.category_id }
+                        })));
+                    } catch (e) {
+                        failureCallback(e);
+                    }
+                }
+            });
+
+            calendar.render();
+        }
+
+        function formatDT(date) {
+            const d = new Date(date);
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function openNewBlock() {
+            document.getElementById('blockId').value = '';
+            document.getElementById('blockModalTitle').textContent = 'Nouveau Bloc de Temps';
+            document.getElementById('blockTitle').value = '';
+            document.getElementById('blockStart').value = '';
+            document.getElementById('blockEnd').value = '';
+            if (document.getElementById('blockCategory')) document.getElementById('blockCategory').value = '';
+            document.getElementById('blockColor').value = '#1E3A5F';
+            document.getElementById('deleteBlockBtn').style.display = 'none';
+        }
+
+        function editBlock(event) {
+            document.getElementById('blockId').value = event.id;
+            document.getElementById('blockModalTitle').textContent = 'Modifier le Bloc';
+            document.getElementById('blockTitle').value = event.title;
+            document.getElementById('blockStart').value = formatDT(event.start);
+            document.getElementById('blockEnd').value = formatDT(event.end);
+            if (document.getElementById('blockCategory')) document.getElementById('blockCategory').value = event.extendedProps.category_id || '';
+            document.getElementById('blockColor').value = event.backgroundColor || '#1E3A5F';
+            document.getElementById('deleteBlockBtn').style.display = 'block';
+            new bootstrap.Modal(document.getElementById('blockModal')).show();
+        }
+
+        async function saveBlock() {
+            const id = document.getElementById('blockId').value;
+            const data = {
+                title: document.getElementById('blockTitle').value,
+                start_datetime: document.getElementById('blockStart').value,
+                end_datetime: document.getElementById('blockEnd').value,
+                category_id: document.getElementById('blockCategory')?.value || null,
+                color: document.getElementById('blockColor').value,
+            };
+            if (!data.title || !data.start_datetime || !data.end_datetime) { alert('Remplis tous les champs obligatoires'); return; }
+            if (id) await API.updateBlock(id, data);
+            else await API.createBlock(data);
+            bootstrap.Modal.getInstance(document.getElementById('blockModal')).hide();
+            calendar.refetchEvents();
+        }
+
+        async function deleteBlock() {
+            const id = document.getElementById('blockId').value;
+            if (!id || !confirm('Supprimer ce bloc ?')) return;
+            await API.deleteBlock(id);
+            bootstrap.Modal.getInstance(document.getElementById('blockModal')).hide();
+            calendar.refetchEvents();
+        }
+
+        // initCalendarPage is called by app.js after auth check
+    </script>
+</body>
+
+</html>

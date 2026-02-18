@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeMaster — Statistiques</title>
+    <link rel="shortcut icon" type="image/png" href="images/favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1E3A5F">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="vendor/jquery-nice-select/css/nice-select.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        :root {
+            --tm-primary: #1E3A5F;
+            --tm-accent: #4DA8DA;
+            --tm-light: #EBF4FA;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tm-widget-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(30, 58, 95, .07);
+        }
+
+        .tm-bell-wrap {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tm-bell-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background: #E74C3C;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        .tm-bell-shake {
+            animation: bellShake .6s ease;
+        }
+
+        @keyframes bellShake {
+
+            0%,
+            100% {
+                transform: rotate(0)
+            }
+
+            15% {
+                transform: rotate(14deg)
+            }
+
+            30% {
+                transform: rotate(-14deg)
+            }
+
+            45% {
+                transform: rotate(10deg)
+            }
+
+            60% {
+                transform: rotate(-8deg)
+            }
+
+            75% {
+                transform: rotate(4deg)
+            }
+        }
+
+        .stat-overview {
+            border-radius: 1rem;
+            padding: 1.2rem;
+            text-align: center;
+            background: var(--tm-light);
+        }
+
+        .stat-overview h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--tm-primary);
+        }
+
+        .stat-overview small {
+            color: #64748b;
+        }
+
+        canvas {
+            max-height: 300px;
+        }
+
+        @media(max-width:768px) {
+            .stat-overview h3 {
+                font-size: 1.4rem;
+            }
+
+            .stat-overview {
+                padding: .8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="preloader">
+        <div class="lds-ripple">
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+    <div id="main-wrapper">
+        <div class="nav-header" style="background:#1E3A5F">
+            <a href="/" class="brand-logo">
+                <svg class="logo-abbr" width="50" height="50" viewBox="0 0 60 60">
+                    <rect width="60" height="60" rx="14" fill="#4DA8DA" /><text x="14" y="42" fill="#fff" font-size="28"
+                        font-weight="bold" font-family="Inter,Arial">T</text>
+                </svg>
+                <div class="brand-title">
+                    <h2 style="color:#fff">TimeMaster</h2><span class="brand-sub-title"
+                        style="color:rgba(255,255,255,.7)">Gestion du Temps</span>
+                </div>
+            </a>
+            <div class="nav-control">
+                <div class="hamburger"><span class="line"></span><span class="line"></span><span class="line"></span>
+                </div>
+            </div>
+        </div>
+        <div class="header border-bottom">
+            <div class="header-content">
+                <nav class="navbar navbar-expand">
+                    <div class="collapse navbar-collapse justify-content-between">
+                        <div class="header-left">
+                            <div class="dashboard_bar"><i class="fas fa-chart-bar me-2"
+                                    style="color:var(--tm-primary)"></i>Statistiques</div>
+                        </div>
+                        <ul class="navbar-nav header-right">
+                            <li class="nav-item d-flex align-items-center">
+                                <div class="tm-bell-wrap" onclick="AlarmService.clearBell()"><i
+                                        class="fas fa-bell fa-lg" id="tm-bell-icon"
+                                        style="color:var(--tm-primary)"></i><span class="tm-bell-badge"
+                                        id="tm-bell-badge">0</span></div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <div class="dlabnav" style="background:#1E3A5F">
+            <div class="dlabnav-scroll">
+                <ul class="metismenu" id="menu">
+                    <li><a href="/" style="color:rgba(255,255,255,.7)"><i class="fas fa-th-large"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Dashboard</span></a></li>
+                    <li><a href="/tasks.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-tasks"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Tâches</span></a></li>
+                    <li><a href="/calendar.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-calendar-alt"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Calendrier</span></a></li>
+                    <li><a href="/pomodoro.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-stopwatch"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Pomodoro</span></a></li>
+                    <li class="mm-active"><a href="/statistics.html" style="color:rgba(255,255,255,.9)"><i
+                                class="fas fa-chart-bar" style="color:#4DA8DA"></i><span
+                                class="nav-text">Statistiques</span></a></li>
+                    <li><a href="/settings.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-cog"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Réglages</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="container-fluid">
+                <!-- Overview -->
+                <div class="row mb-3">
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-overview">
+                            <h3 id="ov-total">—</h3><small>Tâches totales</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-overview">
+                            <h3 id="ov-done" style="color:#4DA8DA">—</h3><small>Complétées</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-overview">
+                            <h3 id="ov-focus" style="color:#8E44AD">—</h3><small>Min Focus</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-overview">
+                            <h3 id="ov-rate" style="color:#F39C12">—</h3><small>Taux Complétion</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Weekly Tasks Chart -->
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="card tm-widget-card mb-4">
+                            <div class="card-header border-0">
+                                <h4 class="card-title mb-0"><i class="fas fa-chart-line me-2"
+                                        style="color:var(--tm-primary)"></i>Tâches cette semaine</h4>
+                            </div>
+                            <div class="card-body"><canvas id="weeklyChart"></canvas></div>
+                        </div>
+                    </div>
+                    <!-- Category Distribution -->
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="card tm-widget-card mb-4">
+                            <div class="card-header border-0">
+                                <h4 class="card-title mb-0"><i class="fas fa-chart-pie me-2"
+                                        style="color:var(--tm-accent)"></i>Par catégorie</h4>
+                            </div>
+                            <div class="card-body"><canvas id="categoryChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Focus Time -->
+                    <div class="col-lg-6">
+                        <div class="card tm-widget-card mb-4">
+                            <div class="card-header border-0">
+                                <h4 class="card-title mb-0"><i class="fas fa-stopwatch me-2"
+                                        style="color:#8E44AD"></i>Temps de focus</h4>
+                            </div>
+                            <div class="card-body"><canvas id="focusChart"></canvas></div>
+                        </div>
+                    </div>
+                    <!-- Top Categories -->
+                    <div class="col-lg-6">
+                        <div class="card tm-widget-card mb-4">
+                            <div class="card-header border-0">
+                                <h4 class="card-title mb-0"><i class="fas fa-trophy me-2" style="color:#F39C12"></i>Top
+                                    catégories</h4>
+                            </div>
+                            <div class="card-body" id="top-categories">
+                                <div class="text-center p-3">
+                                    <div class="spinner-border" style="color:var(--tm-primary)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="copyright">
+                <p>TimeMaster PWA — Gère ton temps, maîtrise ta vie.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/global/global.min.js"></script>
+    <script src="vendor/jquery-nice-select/js/jquery.nice-select.min.js"></script>
+    <script src="vendor/chart.js/Chart.bundle.min.js"></script>
+    <script src="js/template-fix.js"></script>
+    <script src="js/custom.min.js"></script>
+    <script src="js/dlabnav-init.js"></script>
+    <script src="js/app/api-client.js"></script>
+    <script src="js/app/tts-service.js"></script>
+    <script src="js/app/alarm-service.js"></script>
+    <script src="js/app/app.js"></script>
+
+    <script>
+        async function initStatsPage() {
+            try {
+                const [weekly, daily, pStats, focus] = await Promise.all([
+                    API.getStatsWeekly(),
+                    API.getStatsDaily(),
+                    API.getPomodoroStats(),
+                    API.getStatsFocus().catch(() => ({})),
+                ]);
+
+                // Overview
+                document.getElementById('ov-total').textContent = daily.total || 0;
+                document.getElementById('ov-done').textContent = daily.completed || 0;
+                document.getElementById('ov-focus').textContent = (pStats.today?.total_minutes || 0) + ' min';
+                const rate = daily.total > 0 ? Math.round((daily.completed / daily.total) * 100) : 0;
+                document.getElementById('ov-rate').textContent = rate + '%';
+
+                // Weekly chart
+                const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+                const weekData = weekly.days || new Array(7).fill(0);
+                new Chart(document.getElementById('weeklyChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: days,
+                        datasets: [{
+                            label: 'Tâches complétées',
+                            data: weekData,
+                            backgroundColor: 'rgba(30,58,95,.8)',
+                            borderRadius: 8,
+                            barThickness: 24
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                });
+
+                // Category chart
+                const catLabels = weekly.categories?.map(c => c.name) || ['Aucune donnée'];
+                const catData = weekly.categories?.map(c => c.count) || [1];
+                const catColors = weekly.categories?.map(c => c.color) || ['#e8edf3'];
+                new Chart(document.getElementById('categoryChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: catLabels,
+                        datasets: [{ data: catData, backgroundColor: catColors, borderWidth: 2, borderColor: '#fff' }]
+                    },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+                });
+
+                // Focus chart
+                const focusDays = focus.days || days;
+                const focusData = focus.minutes || new Array(7).fill(0);
+                new Chart(document.getElementById('focusChart'), {
+                    type: 'line',
+                    data: {
+                        labels: focusDays,
+                        datasets: [{
+                            label: 'Minutes de focus',
+                            data: focusData,
+                            borderColor: '#8E44AD',
+                            backgroundColor: 'rgba(142,68,173,.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#8E44AD'
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                });
+
+                // Top categories
+                const catContainer = document.getElementById('top-categories');
+                const topCats = weekly.categories?.sort((a, b) => b.count - a.count).slice(0, 5) || [];
+                if (topCats.length === 0) {
+                    catContainer.innerHTML = '<p class="text-muted text-center">Pas assez de données</p>';
+                } else {
+                    const maxCount = topCats[0].count || 1;
+                    catContainer.innerHTML = topCats.map(c => `
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="me-3" style="width:12px;height:12px;border-radius:50%;background:${c.color};display:inline-block"></span>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="fw-bold" style="font-size:.9rem">${c.name}</span>
+                                    <span class="text-muted" style="font-size:.8rem">${c.count} tâches</span>
+                                </div>
+                                <div class="progress" style="height:6px;border-radius:3px">
+                                    <div class="progress-bar" style="width:${(c.count / maxCount) * 100}%;background:${c.color}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error('[Stats] Erreur:', e);
+            }
+        }
+
+        // initStatsPage is called by app.js after auth check
+    </script>
+</body>
+
+</html>

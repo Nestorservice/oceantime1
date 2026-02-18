@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeMaster — Inscription</title>
+    <link rel="shortcut icon" type="image/png" href="images/favicon.png">
+    <meta name="theme-color" content="#1E3A5F">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1E3A5F 0%, #4DA8DA 100%);
+            padding: 1rem
+        }
+
+        .auth-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .15)
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 1.5rem
+        }
+
+        .auth-logo img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: .5rem
+        }
+
+        .auth-logo h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1E3A5F
+        }
+
+        .auth-logo p {
+            color: #64748b;
+            font-size: .85rem
+        }
+
+        .form-group {
+            margin-bottom: 1rem
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: .85rem;
+            color: #1E3A5F;
+            margin-bottom: .4rem
+        }
+
+        .form-input {
+            width: 100%;
+            padding: .75rem 1rem;
+            border: 2px solid #e8edf3;
+            border-radius: .8rem;
+            font-size: .95rem;
+            transition: border-color .2s;
+            font-family: 'Inter', sans-serif
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4DA8DA;
+            box-shadow: 0 0 0 3px rgba(77, 168, 218, .15)
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: .8rem;
+            border: none;
+            border-radius: .8rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Inter', sans-serif;
+            margin-top: .5rem;
+            background: linear-gradient(135deg, #1E3A5F, #4DA8DA);
+            color: #fff
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(30, 58, 95, .25)
+        }
+
+        .auth-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .auth-link {
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: .9rem;
+            color: #64748b
+        }
+
+        .auth-link a {
+            color: #4DA8DA;
+            font-weight: 600;
+            text-decoration: none
+        }
+
+        .auth-link a:hover {
+            text-decoration: underline
+        }
+
+        .auth-error {
+            background: #FFF5F5;
+            color: #E74C3C;
+            padding: .6rem 1rem;
+            border-radius: .6rem;
+            font-size: .85rem;
+            margin-bottom: 1rem;
+            display: none;
+            border: 1px solid #FED7D7
+        }
+
+        .input-icon-wrap {
+            position: relative
+        }
+
+        .input-icon-wrap i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8
+        }
+
+        .input-icon-wrap .form-input {
+            padding-left: 2.8rem
+        }
+
+        .pw-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 4px;
+            transition: all .3s
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-card">
+        <div class="auth-logo">
+            <img src="images/logo.svg" alt="TimeMaster" onerror="this.style.display='none'">
+            <h2>Créer un compte</h2>
+            <p>Rejoins TimeMaster et gère ton temps efficacement</p>
+        </div>
+
+        <div class="auth-error" id="error-msg"></div>
+
+        <form id="register-form" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label>Nom complet</label>
+                <div class="input-icon-wrap">
+                    <i class="fas fa-user"></i>
+                    <input type="text" class="form-input" id="reg-name" placeholder="Ton nom" required
+                        autocomplete="name">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <div class="input-icon-wrap">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" class="form-input" id="reg-email" placeholder="ton@email.com" required
+                        autocomplete="email">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <div class="input-icon-wrap">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" class="form-input" id="reg-password" placeholder="Min. 4 caractères" required
+                        minlength="4" autocomplete="new-password" oninput="showStrength(this.value)">
+                </div>
+                <div class="pw-strength" id="pw-bar"></div>
+            </div>
+            <div class="form-group">
+                <label>Confirmer le mot de passe</label>
+                <div class="input-icon-wrap">
+                    <i class="fas fa-shield-alt"></i>
+                    <input type="password" class="form-input" id="reg-confirm" placeholder="Confirme ton mot de passe"
+                        required autocomplete="new-password">
+                </div>
+            </div>
+            <button type="submit" class="auth-btn" id="reg-btn">
+                <i class="fas fa-user-plus"></i> Créer mon compte
+            </button>
+        </form>
+
+        <div class="auth-link">
+            Déjà un compte ? <a href="/login.html">Se connecter</a>
+        </div>
+    </div>
+
+    <script src="js/app/api-client.js"></script>
+    <script>
+        if (API.isLoggedIn()) window.location.href = '/';
+
+        function showStrength(pw) {
+            const bar = document.getElementById('pw-bar');
+            let score = 0;
+            if (pw.length >= 4) score++;
+            if (pw.length >= 8) score++;
+            if (/[A-Z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw)) score++;
+            if (/[^A-Za-z0-9]/.test(pw)) score++;
+            const colors = ['#E74C3C', '#F39C12', '#F39C12', '#4DA8DA', '#27AE60'];
+            const widths = ['20%', '40%', '60%', '80%', '100%'];
+            bar.style.background = colors[Math.min(score, 4)] || '#e8edf3';
+            bar.style.width = widths[Math.min(score, 4)] || '0%';
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const btn = document.getElementById('reg-btn');
+            const errEl = document.getElementById('error-msg');
+            errEl.style.display = 'none';
+
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const confirm = document.getElementById('reg-confirm').value;
+
+            if (password !== confirm) {
+                errEl.textContent = 'Les mots de passe ne correspondent pas';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création...';
+
+            try {
+                await API.register(name, email, password);
+                window.location.href = '/';
+            } catch (err) {
+                errEl.textContent = err.message || 'Erreur lors de l\'inscription';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Créer mon compte';
+            }
+        }
+    </script>
+</body>
+
+</html>

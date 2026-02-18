@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeMaster — Pomodoro</title>
+    <link rel="shortcut icon" type="image/png" href="images/favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1E3A5F">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="vendor/jquery-nice-select/css/nice-select.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        :root {
+            --tm-primary: #1E3A5F;
+            --tm-accent: #4DA8DA;
+            --tm-light: #EBF4FA;
+            --tm-focus: #8E44AD;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tm-widget-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(30, 58, 95, .07);
+        }
+
+        .tm-bell-wrap {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tm-bell-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background: #E74C3C;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        .tm-bell-shake {
+            animation: bellShake .6s ease;
+        }
+
+        @keyframes bellShake {
+
+            0%,
+            100% {
+                transform: rotate(0)
+            }
+
+            15% {
+                transform: rotate(14deg)
+            }
+
+            30% {
+                transform: rotate(-14deg)
+            }
+
+            45% {
+                transform: rotate(10deg)
+            }
+
+            60% {
+                transform: rotate(-8deg)
+            }
+
+            75% {
+                transform: rotate(4deg)
+            }
+        }
+
+        /* ── Pomodoro Ring ──────── */
+        .pomo-container {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .pomo-ring-wrap {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+
+        .pomo-ring-svg {
+            transform: rotate(-90deg);
+        }
+
+        .pomo-ring-bg {
+            fill: none;
+            stroke: #e8edf3;
+            stroke-width: 8;
+        }
+
+        .pomo-ring-progress {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset .5s ease;
+        }
+
+        .pomo-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .pomo-time {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--tm-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pomo-label {
+            font-size: .85rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .pomo-mode-btn {
+            border-radius: 2rem;
+            padding: .5rem 1.2rem;
+            border: 2px solid #e8edf3;
+            background: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-size: .9rem;
+        }
+
+        .pomo-mode-btn.active {
+            background: var(--tm-primary);
+            color: #fff;
+            border-color: var(--tm-primary);
+        }
+
+        .pomo-mode-btn:hover:not(.active) {
+            border-color: var(--tm-accent);
+        }
+
+        .pomo-ctrl-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pomo-ctrl-btn:hover {
+            transform: scale(1.08);
+        }
+
+        .pomo-ctrl-primary {
+            background: linear-gradient(135deg, #1E3A5F, #4DA8DA);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(30, 58, 95, .2);
+        }
+
+        .pomo-ctrl-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .pomo-stat-card {
+            text-align: center;
+            padding: 1rem;
+            border-radius: .8rem;
+            background: var(--tm-light);
+        }
+
+        .pomo-stat-num {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--tm-primary);
+        }
+
+        .pomo-stat-label {
+            font-size: .75rem;
+            color: #64748b;
+        }
+
+        @media(max-width:768px) {
+            .pomo-ring-wrap svg {
+                width: 200px;
+                height: 200px;
+            }
+
+            .pomo-time {
+                font-size: 2.2rem;
+            }
+
+            .pomo-mode-btn {
+                padding: .4rem .8rem;
+                font-size: .8rem;
+            }
+
+            .pomo-ctrl-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="preloader">
+        <div class="lds-ripple">
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+    <div id="main-wrapper">
+        <div class="nav-header" style="background:#1E3A5F">
+            <a href="/" class="brand-logo">
+                <svg class="logo-abbr" width="50" height="50" viewBox="0 0 60 60">
+                    <rect width="60" height="60" rx="14" fill="#4DA8DA" /><text x="14" y="42" fill="#fff" font-size="28"
+                        font-weight="bold" font-family="Inter,Arial">T</text>
+                </svg>
+                <div class="brand-title">
+                    <h2 style="color:#fff">TimeMaster</h2><span class="brand-sub-title"
+                        style="color:rgba(255,255,255,.7)">Gestion du Temps</span>
+                </div>
+            </a>
+            <div class="nav-control">
+                <div class="hamburger"><span class="line"></span><span class="line"></span><span class="line"></span>
+                </div>
+            </div>
+        </div>
+        <div class="header border-bottom">
+            <div class="header-content">
+                <nav class="navbar navbar-expand">
+                    <div class="collapse navbar-collapse justify-content-between">
+                        <div class="header-left">
+                            <div class="dashboard_bar"><i class="fas fa-stopwatch me-2"
+                                    style="color:var(--tm-focus)"></i>Pomodoro Timer</div>
+                        </div>
+                        <ul class="navbar-nav header-right">
+                            <li class="nav-item d-flex align-items-center">
+                                <div class="tm-bell-wrap" onclick="AlarmService.clearBell()"><i
+                                        class="fas fa-bell fa-lg" id="tm-bell-icon"
+                                        style="color:var(--tm-primary)"></i><span class="tm-bell-badge"
+                                        id="tm-bell-badge">0</span></div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <div class="dlabnav" style="background:#1E3A5F">
+            <div class="dlabnav-scroll">
+                <ul class="metismenu" id="menu">
+                    <li><a href="/" style="color:rgba(255,255,255,.7)"><i class="fas fa-th-large"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Dashboard</span></a></li>
+                    <li><a href="/tasks.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-tasks"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Tâches</span></a></li>
+                    <li><a href="/calendar.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-calendar-alt"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Calendrier</span></a></li>
+                    <li class="mm-active"><a href="/pomodoro.html" style="color:rgba(255,255,255,.9)"><i
+                                class="fas fa-stopwatch" style="color:#4DA8DA"></i><span
+                                class="nav-text">Pomodoro</span></a></li>
+                    <li><a href="/statistics.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-chart-bar"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Statistiques</span></a>
+                    </li>
+                    <li><a href="/settings.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-cog"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Réglages</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xl-7 col-lg-8 mx-auto">
+                        <div class="card tm-widget-card">
+                            <div class="card-body">
+                                <div class="pomo-container">
+                                    <!-- Mode buttons -->
+                                    <div class="d-flex justify-content-center gap-2 mb-4">
+                                        <button class="pomo-mode-btn active" id="mode-focus" onclick="setMode('focus')">
+                                            <i class="fas fa-brain me-1"></i>Focus
+                                        </button>
+                                        <button class="pomo-mode-btn" id="mode-break" onclick="setMode('break')">
+                                            <i class="fas fa-coffee me-1"></i>Pause
+                                        </button>
+                                        <button class="pomo-mode-btn" id="mode-long" onclick="setMode('long')">
+                                            <i class="fas fa-couch me-1"></i>Longue Pause
+                                        </button>
+                                    </div>
+
+                                    <!-- Task select -->
+                                    <div class="mb-4">
+                                        <select id="pomo-task" class="form-select mx-auto"
+                                            style="max-width:300px;border-radius:.8rem">
+                                            <option value="">Aucune tâche associée</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Ring -->
+                                    <div class="pomo-ring-wrap">
+                                        <svg class="pomo-ring-svg" width="260" height="260">
+                                            <circle class="pomo-ring-bg" cx="130" cy="130" r="120" />
+                                            <circle class="pomo-ring-progress" id="pomo-progress" cx="130" cy="130"
+                                                r="120" stroke="#1E3A5F" stroke-dasharray="753.98"
+                                                stroke-dashoffset="0" />
+                                        </svg>
+                                        <div class="pomo-ring-text">
+                                            <div class="pomo-time" id="pomo-display">25:00</div>
+                                            <div class="pomo-label" id="pomo-status">Prêt</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Controls -->
+                                    <div class="d-flex justify-content-center gap-3 mb-4">
+                                        <button class="pomo-ctrl-btn pomo-ctrl-secondary" onclick="resetTimer()"
+                                            title="Réinitialiser">
+                                            <i class="fas fa-redo"></i>
+                                        </button>
+                                        <button class="pomo-ctrl-btn pomo-ctrl-primary" id="pomo-toggle"
+                                            onclick="toggleTimer()">
+                                            <i class="fas fa-play" id="pomo-icon"></i>
+                                        </button>
+                                        <button class="pomo-ctrl-btn pomo-ctrl-secondary" onclick="skipTimer()"
+                                            title="Passer">
+                                            <i class="fas fa-forward"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats cards -->
+                        <div class="row mb-4">
+                            <div class="col-4">
+                                <div class="pomo-stat-card">
+                                    <div class="pomo-stat-num" id="pomo-sessions">0</div>
+                                    <div class="pomo-stat-label">Sessions</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="pomo-stat-card">
+                                    <div class="pomo-stat-num" id="pomo-minutes">0</div>
+                                    <div class="pomo-stat-label">Minutes</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="pomo-stat-card">
+                                    <div class="pomo-stat-num" id="pomo-streak">0</div>
+                                    <div class="pomo-stat-label">Streak</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="copyright">
+                <p>TimeMaster PWA — Gère ton temps, maîtrise ta vie.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/global/global.min.js"></script>
+    <script src="vendor/jquery-nice-select/js/jquery.nice-select.min.js"></script>
+    <script src="js/template-fix.js"></script>
+    <script src="js/custom.min.js"></script>
+    <script src="js/dlabnav-init.js"></script>
+    <script src="js/app/api-client.js"></script>
+    <script src="js/app/tts-service.js"></script>
+    <script src="js/app/alarm-service.js"></script>
+    <script src="js/app/app.js"></script>
+
+    <script>
+        const CIRCUMFERENCE = 2 * Math.PI * 120; // r=120
+        let timerInterval = null;
+        let isRunning = false;
+        let currentMode = 'focus';
+        let secondsLeft = 25 * 60;
+        let totalSeconds = 25 * 60;
+
+        const durations = { focus: 25, break: 5, long: 15 };
+
+        async function initPomodoroPage() {
+            // Load tasks for selection
+            try {
+                const tasks = await API.getTasksToday();
+                const sel = document.getElementById('pomo-task');
+                tasks.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = t.title;
+                    sel.appendChild(opt);
+                });
+            } catch (e) { }
+
+            // Load settings
+            try {
+                const s = await API.getSettings();
+                if (s.pomodoro_work_minutes) durations.focus = parseInt(s.pomodoro_work_minutes);
+                if (s.pomodoro_break_minutes) durations.break = parseInt(s.pomodoro_break_minutes);
+                if (s.pomodoro_long_break_minutes) durations.long = parseInt(s.pomodoro_long_break_minutes);
+                secondsLeft = totalSeconds = durations.focus * 60;
+                updateDisplay();
+            } catch (e) { }
+
+            // Load stats
+            loadPomodoroStats();
+        }
+
+        async function loadPomodoroStats() {
+            try {
+                const stats = await API.getPomodoroStats();
+                document.getElementById('pomo-sessions').textContent = stats.today?.completed || 0;
+                document.getElementById('pomo-minutes').textContent = stats.today?.total_minutes || 0;
+                document.getElementById('pomo-streak').textContent = stats.streak?.length || 0;
+            } catch (e) { }
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.pomo-mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('mode-' + mode).classList.add('active');
+
+            const colors = { focus: '#1E3A5F', break: '#4DA8DA', long: '#8E44AD' };
+            document.getElementById('pomo-progress').setAttribute('stroke', colors[mode]);
+
+            secondsLeft = totalSeconds = durations[mode] * 60;
+            stopTimer();
+            updateDisplay();
+        }
+
+        function toggleTimer() {
+            if (isRunning) stopTimer();
+            else startTimer();
+        }
+
+        function startTimer() {
+            isRunning = true;
+            document.getElementById('pomo-icon').className = 'fas fa-pause';
+            document.getElementById('pomo-status').textContent = currentMode === 'focus' ? 'Concentration...' : 'Pause...';
+
+            timerInterval = setInterval(() => {
+                secondsLeft--;
+                updateDisplay();
+                if (secondsLeft <= 0) {
+                    stopTimer();
+                    onTimerComplete();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('pomo-icon').className = 'fas fa-play';
+            if (secondsLeft > 0) document.getElementById('pomo-status').textContent = 'En pause';
+        }
+
+        function resetTimer() {
+            stopTimer();
+            secondsLeft = totalSeconds;
+            updateDisplay();
+            document.getElementById('pomo-status').textContent = 'Prêt';
+        }
+
+        function skipTimer() {
+            stopTimer();
+            onTimerComplete();
+        }
+
+        function updateDisplay() {
+            const min = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+            const sec = (secondsLeft % 60).toString().padStart(2, '0');
+            document.getElementById('pomo-display').textContent = `${min}:${sec}`;
+
+            // Update ring
+            const progress = document.getElementById('pomo-progress');
+            const pct = 1 - (secondsLeft / totalSeconds);
+            progress.setAttribute('stroke-dasharray', CIRCUMFERENCE);
+            progress.setAttribute('stroke-dashoffset', CIRCUMFERENCE * (1 - pct));
+        }
+
+        async function onTimerComplete() {
+            AlarmService.playAlarmSound();
+            TTS.pomodoroEnd(currentMode !== 'focus');
+
+            if (currentMode === 'focus') {
+                try {
+                    const taskId = document.getElementById('pomo-task').value || null;
+                    await API.createPomodoroSession({
+                        task_id: taskId,
+                        duration_minutes: durations.focus,
+                        completed: true,
+                        session_date: new Date().toISOString().split('T')[0],
+                    });
+                    loadPomodoroStats();
+                } catch (e) { }
+
+                setMode('break');
+            } else {
+                setMode('focus');
+            }
+
+            document.getElementById('pomo-status').textContent = 'Terminé !';
+        }
+
+        // initPomodoroPage is called by app.js after auth check
+    </script>
+</body>
+
+</html>

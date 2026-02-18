@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeMaster — Réglages</title>
+    <link rel="shortcut icon" type="image/png" href="images/favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1E3A5F">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="vendor/jquery-nice-select/css/nice-select.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        :root {
+            --tm-primary: #1E3A5F;
+            --tm-accent: #4DA8DA;
+            --tm-light: #EBF4FA;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tm-widget-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 2px 16px rgba(30, 58, 95, .07);
+        }
+
+        .tm-bell-wrap {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tm-bell-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background: #E74C3C;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        .tm-bell-shake {
+            animation: bellShake .6s ease;
+        }
+
+        @keyframes bellShake {
+
+            0%,
+            100% {
+                transform: rotate(0)
+            }
+
+            15% {
+                transform: rotate(14deg)
+            }
+
+            30% {
+                transform: rotate(-14deg)
+            }
+
+            45% {
+                transform: rotate(10deg)
+            }
+
+            60% {
+                transform: rotate(-8deg)
+            }
+
+            75% {
+                transform: rotate(4deg)
+            }
+        }
+
+        .setting-section-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--tm-primary);
+            border-bottom: 2px solid var(--tm-light);
+            padding-bottom: .5rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: .3rem .7rem;
+            border-radius: 2rem;
+            font-size: .85rem;
+            font-weight: 500;
+            margin: .2rem;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+        }
+
+        .category-tag .cat-delete {
+            cursor: pointer;
+            margin-left: .3rem;
+            color: #999;
+        }
+
+        .category-tag .cat-delete:hover {
+            color: #E74C3C;
+        }
+
+        .toast-saved {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1E3A5F;
+            color: #fff;
+            padding: .6rem 1.5rem;
+            border-radius: 2rem;
+            font-size: .9rem;
+            z-index: 99999;
+            opacity: 0;
+            transition: opacity .3s;
+            pointer-events: none;
+            box-shadow: 0 4px 16px rgba(30, 58, 95, .2);
+        }
+
+        .toast-saved.show {
+            opacity: 1;
+        }
+
+        .tm-setting-field {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .5rem .8rem;
+            background: #f8fafc;
+            border-radius: .75rem;
+            border: 1px solid #eef2f7;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .tm-setting-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: .6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .9rem;
+            flex-shrink: 0;
+        }
+
+        @media(max-width:768px) {
+            .setting-section-title {
+                font-size: .9rem;
+            }
+
+            .tm-setting-field {
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="preloader">
+        <div class="lds-ripple">
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+    <div id="main-wrapper">
+        <div class="nav-header" style="background:#1E3A5F">
+            <a href="/" class="brand-logo">
+                <svg class="logo-abbr" width="50" height="50" viewBox="0 0 60 60">
+                    <rect width="60" height="60" rx="14" fill="#4DA8DA" /><text x="14" y="42" fill="#fff" font-size="28"
+                        font-weight="bold" font-family="Inter,Arial">T</text>
+                </svg>
+                <div class="brand-title">
+                    <h2 style="color:#fff">TimeMaster</h2><span class="brand-sub-title"
+                        style="color:rgba(255,255,255,.7)">Gestion du Temps</span>
+                </div>
+            </a>
+            <div class="nav-control">
+                <div class="hamburger"><span class="line"></span><span class="line"></span><span class="line"></span>
+                </div>
+            </div>
+        </div>
+        <div class="header border-bottom">
+            <div class="header-content">
+                <nav class="navbar navbar-expand">
+                    <div class="collapse navbar-collapse justify-content-between">
+                        <div class="header-left">
+                            <div class="dashboard_bar"><i class="fas fa-cog me-2"
+                                    style="color:var(--tm-primary)"></i>Réglages</div>
+                        </div>
+                        <ul class="navbar-nav header-right">
+                            <li class="nav-item d-flex align-items-center">
+                                <div class="tm-bell-wrap" onclick="AlarmService.clearBell()"><i
+                                        class="fas fa-bell fa-lg" id="tm-bell-icon"
+                                        style="color:var(--tm-primary)"></i><span class="tm-bell-badge"
+                                        id="tm-bell-badge">0</span></div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <div class="dlabnav" style="background:#1E3A5F">
+            <div class="dlabnav-scroll">
+                <ul class="metismenu" id="menu">
+                    <li><a href="/" style="color:rgba(255,255,255,.7)"><i class="fas fa-th-large"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Dashboard</span></a></li>
+                    <li><a href="/tasks.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-tasks"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Tâches</span></a></li>
+                    <li><a href="/calendar.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-calendar-alt"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Calendrier</span></a></li>
+                    <li><a href="/pomodoro.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-stopwatch"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Pomodoro</span></a></li>
+                    <li><a href="/statistics.html" style="color:rgba(255,255,255,.7)"><i class="fas fa-chart-bar"
+                                style="color:rgba(255,255,255,.5)"></i><span class="nav-text">Statistiques</span></a>
+                    </li>
+                    <li class="mm-active"><a href="/settings.html" style="color:rgba(255,255,255,.9)"><i
+                                class="fas fa-cog" style="color:#4DA8DA"></i><span class="nav-text">Réglages</span></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xl-8 mx-auto">
+
+                        <!-- Morning Briefing -->
+                        <div class="card tm-widget-card mb-3">
+                            <div class="card-body">
+                                <h5 class="setting-section-title"><i class="fas fa-broadcast-tower me-2"></i>Briefing du
+                                    Matin</h5>
+                                <div class="d-flex flex-wrap align-items-center gap-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label class="form-label fw-bold mb-0 text-nowrap"
+                                            style="font-size:.85rem">Heure</label>
+                                        <input type="time" id="briefingTime" class="form-control form-control-sm"
+                                            value="07:30" style="width:110px">
+                                    </div>
+                                    <div class="form-check form-switch ms-auto">
+                                        <input class="form-check-input" type="checkbox" id="briefingEnabled" checked>
+                                        <label class="form-check-label" for="briefingEnabled"
+                                            style="font-size:.85rem">Activer</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pomodoro -->
+                        <div class="card tm-widget-card mb-3">
+                            <div class="card-body">
+                                <h5 class="setting-section-title"><i class="fas fa-stopwatch me-2"></i>Pomodoro</h5>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="tm-setting-field">
+                                        <span class="tm-setting-icon"
+                                            style="background:rgba(30,58,95,.08);color:#1E3A5F"><i
+                                                class="fas fa-brain"></i></span>
+                                        <div>
+                                            <small class="text-muted d-block" style="font-size:.7rem">Focus</small>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <input type="number" id="pomodoroWork"
+                                                    class="form-control form-control-sm" value="25" min="1" max="120"
+                                                    style="width:60px">
+                                                <small class="text-muted">min</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tm-setting-field">
+                                        <span class="tm-setting-icon"
+                                            style="background:rgba(77,168,218,.1);color:#4DA8DA"><i
+                                                class="fas fa-coffee"></i></span>
+                                        <div>
+                                            <small class="text-muted d-block" style="font-size:.7rem">Pause</small>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <input type="number" id="pomodoroBreak"
+                                                    class="form-control form-control-sm" value="5" min="1" max="30"
+                                                    style="width:60px">
+                                                <small class="text-muted">min</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tm-setting-field">
+                                        <span class="tm-setting-icon"
+                                            style="background:rgba(142,68,173,.08);color:#8E44AD"><i
+                                                class="fas fa-bed"></i></span>
+                                        <div>
+                                            <small class="text-muted d-block" style="font-size:.7rem">Longue
+                                                Pause</small>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <input type="number" id="pomodoroLong"
+                                                    class="form-control form-control-sm" value="15" min="1" max="60"
+                                                    style="width:60px">
+                                                <small class="text-muted">min</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TTS / Voice -->
+                        <div class="card tm-widget-card mb-3">
+                            <div class="card-body">
+                                <h5 class="setting-section-title"><i class="fas fa-volume-up me-2"></i>Voix & TTS</h5>
+                                <div class="d-flex flex-wrap align-items-end gap-3">
+                                    <div style="flex:1;min-width:200px">
+                                        <label class="form-label fw-bold mb-1" style="font-size:.8rem">Voix</label>
+                                        <select id="ttsVoice" class="form-select form-select-sm"></select>
+                                    </div>
+                                    <div style="flex:0 0 120px">
+                                        <label class="form-label fw-bold mb-1" style="font-size:.8rem">Volume</label>
+                                        <input type="range" id="ttsVolume" class="form-range" min="0" max="1" step="0.1"
+                                            value="0.8">
+                                    </div>
+                                    <button class="btn btn-sm"
+                                        style="background:var(--tm-accent);color:#fff;border-radius:8px;height:32px"
+                                        onclick="testVoice()">
+                                        <i class="fas fa-play"></i> Test
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Anti-Hyperfocus -->
+                        <div class="card tm-widget-card mb-3">
+                            <div class="card-body">
+                                <h5 class="setting-section-title"><i class="fas fa-brain me-2"></i>Anti-Hyperfocus</h5>
+                                <div class="d-flex flex-wrap align-items-center gap-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="hyperfocusEnabled" checked>
+                                        <label class="form-check-label" for="hyperfocusEnabled"
+                                            style="font-size:.85rem">Rappels actifs</label>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 ms-auto">
+                                        <label class="form-label fw-bold mb-0 text-nowrap"
+                                            style="font-size:.8rem">Intervalle</label>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <input type="number" id="hyperfocusInterval"
+                                                class="form-control form-control-sm" value="120" min="30" max="480"
+                                                style="width:70px">
+                                            <small class="text-muted">min</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Categories -->
+                        <div class="card tm-widget-card mb-3">
+                            <div class="card-body">
+                                <h5 class="setting-section-title"><i class="fas fa-tags me-2"></i>Catégories</h5>
+                                <div id="category-list" class="d-flex flex-wrap gap-2 mb-3">
+                                    <div class="text-center p-3 w-100">
+                                        <div class="spinner-border spinner-border-sm" style="color:var(--tm-primary)">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <input type="text" id="newCatName" class="form-control form-control-sm"
+                                        style="flex:1;min-width:130px;max-width:200px" placeholder="Nouvelle catégorie">
+                                    <input type="color" id="newCatColor"
+                                        class="form-control form-control-color form-control-sm" value="#4DA8DA"
+                                        style="width:36px;height:32px;padding:2px">
+                                    <button class="btn btn-sm"
+                                        style="background:var(--tm-primary);color:#fff;border-radius:8px"
+                                        onclick="addCategory()">
+                                        <i class="fas fa-plus"></i> Ajouter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Save button -->
+                        <div class="text-center mb-5">
+                            <button class="btn btn-lg"
+                                style="background:linear-gradient(135deg,#1E3A5F,#4DA8DA);color:#fff;border-radius:1rem;padding:.7rem 3rem;font-weight:700"
+                                onclick="saveSettings()">
+                                <i class="fas fa-save me-2"></i>Enregistrer les Réglages
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="copyright">
+                <p>TimeMaster PWA — Gère ton temps, maîtrise ta vie.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Toast -->
+    <div class="toast-saved" id="save-toast"><i class="fas fa-check-circle me-2"></i>Réglages enregistrés !</div>
+
+    <script src="vendor/global/global.min.js"></script>
+    <script src="vendor/jquery-nice-select/js/jquery.nice-select.min.js"></script>
+    <script src="js/template-fix.js"></script>
+    <script src="js/custom.min.js"></script>
+    <script src="js/dlabnav-init.js"></script>
+    <script src="js/app/api-client.js"></script>
+    <script src="js/app/tts-service.js"></script>
+    <script src="js/app/alarm-service.js"></script>
+    <script src="js/app/app.js"></script>
+
+    <script>
+        async function initSettingsPage() {
+            // Load settings
+            try {
+                const s = await API.getSettings();
+                document.getElementById('briefingTime').value = s.morning_briefing_time || '07:30';
+                document.getElementById('briefingEnabled').checked = s.morning_briefing_enabled === 'true';
+                document.getElementById('pomodoroWork').value = s.pomodoro_work_minutes || 25;
+                document.getElementById('pomodoroBreak').value = s.pomodoro_break_minutes || 5;
+                document.getElementById('pomodoroLong').value = s.pomodoro_long_break_minutes || 15;
+                document.getElementById('ttsVolume').value = s.alarm_volume || 0.8;
+                document.getElementById('hyperfocusEnabled').checked = s.hyperfocus_check_enabled === 'true';
+                document.getElementById('hyperfocusInterval').value = s.hyperfocus_check_interval_minutes || 120;
+            } catch (e) { }
+
+            // Load voices
+            populateVoices();
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = populateVoices;
+            }
+
+            // Load categories
+            loadCategories();
+        }
+
+        function populateVoices() {
+            const voices = speechSynthesis.getVoices();
+            const sel = document.getElementById('ttsVoice');
+            sel.innerHTML = '';
+            voices.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.name;
+                opt.textContent = `${v.name} (${v.lang})`;
+                if (TTS.voice && v.name === TTS.voice.name) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        async function loadCategories() {
+            try {
+                const cats = await API.getCategories();
+                const container = document.getElementById('category-list');
+                if (cats.length === 0) {
+                    container.innerHTML = '<p class="text-muted">Aucune catégorie</p>';
+                    return;
+                }
+                container.innerHTML = cats.map(c => `
+                    <span class="category-tag" style="border-color:${c.color}">
+                        <span style="width:10px;height:10px;border-radius:50%;background:${c.color};display:inline-block;margin-right:6px"></span>
+                        ${c.name}
+                        <span class="cat-delete" onclick="deleteCategory(${c.id})" title="Supprimer">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    </span>
+                `).join('');
+            } catch (e) { }
+        }
+
+        async function addCategory() {
+            const name = document.getElementById('newCatName').value.trim();
+            const color = document.getElementById('newCatColor').value;
+            if (!name) return;
+            await API.createCategory({ name, color });
+            document.getElementById('newCatName').value = '';
+            loadCategories();
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('Supprimer cette catégorie ?')) return;
+            await API.deleteCategory(id);
+            loadCategories();
+        }
+
+        async function saveSettings() {
+            const data = {
+                morning_briefing_time: document.getElementById('briefingTime').value,
+                morning_briefing_enabled: document.getElementById('briefingEnabled').checked ? 'true' : 'false',
+                pomodoro_work_minutes: document.getElementById('pomodoroWork').value,
+                pomodoro_break_minutes: document.getElementById('pomodoroBreak').value,
+                pomodoro_long_break_minutes: document.getElementById('pomodoroLong').value,
+                alarm_volume: document.getElementById('ttsVolume').value,
+                hyperfocus_check_enabled: document.getElementById('hyperfocusEnabled').checked ? 'true' : 'false',
+                hyperfocus_check_interval_minutes: document.getElementById('hyperfocusInterval').value,
+            };
+
+            // Apply voice
+            const voiceName = document.getElementById('ttsVoice').value;
+            if (voiceName) {
+                TTS.setVoice(voiceName);
+                data.tts_voice = voiceName;
+            }
+
+            await API.updateSettings(data);
+
+            // Show toast
+            const toast = document.getElementById('save-toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function testVoice() {
+            const voiceName = document.getElementById('ttsVoice').value;
+            if (voiceName) TTS.setVoice(voiceName);
+            TTS.volume = parseFloat(document.getElementById('ttsVolume').value);
+            TTS.speak('Bonjour ! Ceci est un test de la voix TimeMaster. Le son fonctionne correctement.');
+        }
+
+        // initSettingsPage is called by app.js after auth check
+    </script>
+</body>
+
+</html>
