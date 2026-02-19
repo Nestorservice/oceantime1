@@ -9,7 +9,7 @@
     <link rel="shortcut icon" type="image/png" href="images/favicon.png">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1E3A5F">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TimeMaster">
     <link rel="apple-touch-icon" href="/images/icon.svg">
@@ -430,12 +430,24 @@
         }
 
         async function loadAllTasks() {
-            const filters = {};
-            if (currentFilter !== 'all') filters.status = currentFilter;
-            const catId = document.getElementById('categoryFilter').value;
-            if (catId) filters.category = catId;
-            const tasks = await API.getTasks(filters);
-            renderTasks(tasks);
+            try {
+                const filters = {};
+                if (currentFilter !== 'all') filters.status = currentFilter;
+                const catFilterEl = document.getElementById('categoryFilter');
+                const catId = catFilterEl ? catFilterEl.value : '';
+                if (catId) filters.category = catId;
+                const tasks = await API.getTasks(filters);
+                renderTasks(tasks);
+            } catch (e) {
+                console.warn('[Tasks] Erreur chargement:', e.message);
+                document.getElementById('task-list').innerHTML = `<div class="text-center p-5 text-muted">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3" style="color:#F39C12"></i>
+                    <p>Impossible de charger les tâches. Reconnecte-toi.</p>
+                    <a href="/login.html" class="btn btn-sm" style="background:var(--tm-primary);color:#fff;border-radius:8px">
+                        <i class="fas fa-sign-in-alt"></i> Connexion
+                    </a>
+                </div>`;
+            }
         }
 
         function renderTasks(tasks) {

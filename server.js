@@ -32,6 +32,14 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Global error handler — catches unhandled errors in API routes
+app.use((err, req, res, next) => {
+  console.error('[Error]', req.method, req.path, '-', err.message);
+  if (!res.headersSent) {
+    res.status(500).json({ error: err.message || 'Erreur serveur interne' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`\nTimeMaster PWA demarre sur http://localhost:${PORT}\n`);
 });
