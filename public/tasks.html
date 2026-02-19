@@ -511,7 +511,7 @@
         }
         function openNewTaskModal() {
             openNewTask();
-            new bootstrap.Modal(document.getElementById('taskModal')).show();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('taskModal')).show();
         }
         async function editTask(id) {
             const task = await API.getTask(id);
@@ -526,7 +526,7 @@
             if (el('taskTime')) el('taskTime').value = task.due_time || '';
             if (el('taskReminderBefore')) el('taskReminderBefore').value = task.reminder_minutes_before || 10;
             if (el('taskVoice')) el('taskVoice').checked = !!task.voice_reminder;
-            new bootstrap.Modal(document.getElementById('taskModal')).show();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('taskModal')).show();
         }
         async function saveTask() {
             const id = document.getElementById('taskId').value;
