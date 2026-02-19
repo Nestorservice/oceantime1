@@ -497,16 +497,17 @@
             loadAllTasks();
         }
         function openNewTask() {
-            document.getElementById('taskId').value = '';
-            document.getElementById('taskModalTitle').textContent = 'Nouvelle Tâche';
-            document.getElementById('taskTitle').value = '';
-            document.getElementById('taskDescription').value = '';
-            document.getElementById('taskCategory').value = '';
-            document.getElementById('taskPriority').value = '2';
-            document.getElementById('taskDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('taskTime').value = '';
-            document.getElementById('taskReminderBefore').value = '10';
-            document.getElementById('taskVoice').checked = true;
+            const el = id => document.getElementById(id);
+            if (el('taskId')) el('taskId').value = '';
+            if (el('taskModalTitle')) el('taskModalTitle').textContent = 'Nouvelle Tâche';
+            if (el('taskTitle')) el('taskTitle').value = '';
+            if (el('taskDescription')) el('taskDescription').value = '';
+            if (el('taskCategory')) el('taskCategory').value = '';
+            if (el('taskPriority')) el('taskPriority').value = '2';
+            if (el('taskDate')) el('taskDate').value = new Date().toISOString().split('T')[0];
+            if (el('taskTime')) el('taskTime').value = '';
+            if (el('taskReminderBefore')) el('taskReminderBefore').value = '10';
+            if (el('taskVoice')) el('taskVoice').checked = true;
         }
         function openNewTaskModal() {
             openNewTask();
@@ -514,16 +515,17 @@
         }
         async function editTask(id) {
             const task = await API.getTask(id);
-            document.getElementById('taskId').value = task.id;
-            document.getElementById('taskModalTitle').textContent = 'Modifier la Tâche';
-            document.getElementById('taskTitle').value = task.title;
-            document.getElementById('taskDescription').value = task.description || '';
-            document.getElementById('taskCategory').value = task.category_id || '';
-            document.getElementById('taskPriority').value = task.priority;
-            document.getElementById('taskDate').value = task.due_date || '';
-            document.getElementById('taskTime').value = task.due_time || '';
-            document.getElementById('taskReminderBefore').value = task.reminder_minutes_before || 10;
-            document.getElementById('taskVoice').checked = !!task.voice_reminder;
+            const el = name => document.getElementById(name);
+            if (el('taskId')) el('taskId').value = task.id;
+            if (el('taskModalTitle')) el('taskModalTitle').textContent = 'Modifier la Tâche';
+            if (el('taskTitle')) el('taskTitle').value = task.title;
+            if (el('taskDescription')) el('taskDescription').value = task.description || '';
+            if (el('taskCategory')) el('taskCategory').value = task.category_id || '';
+            if (el('taskPriority')) el('taskPriority').value = task.priority;
+            if (el('taskDate')) el('taskDate').value = task.due_date || '';
+            if (el('taskTime')) el('taskTime').value = task.due_time || '';
+            if (el('taskReminderBefore')) el('taskReminderBefore').value = task.reminder_minutes_before || 10;
+            if (el('taskVoice')) el('taskVoice').checked = !!task.voice_reminder;
             new bootstrap.Modal(document.getElementById('taskModal')).show();
         }
         async function saveTask() {
