@@ -5,10 +5,17 @@
  */
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 
 // Use /data for Railway volume mount, fallback to ./db locally
 const DB_DIR = process.env.DB_PATH || path.join(__dirname);
 const DB_FILE = path.join(DB_DIR, 'timemaster.db');
+
+// Ensure the database directory exists (fixes Railway crash)
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+  console.log('[DB] Created directory:', DB_DIR);
+}
 
 const db = new Database(DB_FILE);
 
