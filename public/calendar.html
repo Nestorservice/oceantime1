@@ -297,7 +297,7 @@
                     openNewBlock();
                     document.getElementById('blockStart').value = formatDT(info.start);
                     document.getElementById('blockEnd').value = formatDT(info.end);
-                    new bootstrap.Modal(document.getElementById('blockModal')).show();
+                    $('#blockModal').modal('show');
                     calendar.unselect();
                 },
                 eventClick: function (info) { editBlock(info.event); },
@@ -359,7 +359,7 @@
             if (document.getElementById('blockCategory')) document.getElementById('blockCategory').value = event.extendedProps.category_id || '';
             document.getElementById('blockColor').value = event.backgroundColor || '#1E3A5F';
             document.getElementById('deleteBlockBtn').style.display = 'block';
-            new bootstrap.Modal(document.getElementById('blockModal')).show();
+            $('#blockModal').modal('show');
         }
 
         async function saveBlock() {
@@ -374,7 +374,7 @@
             if (!data.title || !data.start_datetime || !data.end_datetime) { alert('Remplis tous les champs obligatoires'); return; }
             if (id) await API.updateBlock(id, data);
             else await API.createBlock(data);
-            bootstrap.Modal.getInstance(document.getElementById('blockModal')).hide();
+            $('#blockModal').modal('hide');
             calendar.refetchEvents();
         }
 
@@ -382,7 +382,7 @@
             const id = document.getElementById('blockId').value;
             if (!id || !confirm('Supprimer ce bloc ?')) return;
             await API.deleteBlock(id);
-            bootstrap.Modal.getInstance(document.getElementById('blockModal')).hide();
+            $('#blockModal').modal('hide');
             calendar.refetchEvents();
         }
 

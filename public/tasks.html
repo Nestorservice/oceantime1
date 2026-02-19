@@ -511,7 +511,7 @@
         }
         function openNewTaskModal() {
             openNewTask();
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('taskModal')).show();
+            $('#taskModal').modal('show');
         }
         async function editTask(id) {
             const task = await API.getTask(id);
@@ -526,7 +526,7 @@
             if (el('taskTime')) el('taskTime').value = task.due_time || '';
             if (el('taskReminderBefore')) el('taskReminderBefore').value = task.reminder_minutes_before || 10;
             if (el('taskVoice')) el('taskVoice').checked = !!task.voice_reminder;
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('taskModal')).show();
+            $('#taskModal').modal('show');
         }
         async function saveTask() {
             const id = document.getElementById('taskId').value;
@@ -543,7 +543,7 @@
             if (!data.title) { alert('Le titre est requis'); return; }
             if (id) { await API.updateTask(id, data); }
             else { await API.createTask(data); }
-            bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
+            $('#taskModal').modal('hide');
             loadAllTasks();
         }
         async function deleteTask(id) {
